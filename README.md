@@ -1,4 +1,4 @@
-# ptcinema
+# Ponytown Cinema
 
 # Setting up:
 1) Download NodeJS
