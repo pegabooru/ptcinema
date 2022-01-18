@@ -53,11 +53,11 @@ class Player { // Local player
     if (keys['A']) { // Left
       velX = -this.speed;
     };
-    sock.emit('localplayerupdate', [myid, this.x, this.y, this.color]);
+    sock.emit('localplayerupdate', [myid, this.x, this.y, this.color]); // Send updates to server
     this.draw(velX, velY);
   };
 
-  draw(vx, vy) {
+  draw(vx, vy) { // Draw player
     this.x += vx;
     this.y += vy;
     c.beginPath();
@@ -74,7 +74,7 @@ class ServerPlayer { // Server player
     this.id = id;
   };
 
-  draw() {
+  draw() { // Draw server player
     c.beginPath();
     c.fillStyle = this.color;
     c.fillRect(this.x, this.y, 64, 64);
@@ -86,7 +86,6 @@ var serverplayersid = [];
 var keys = [];
 
 var colorid = Math.floor(Math.random() * 6);
-console.log(colorid);
 var mycolor = 'blue';
 if (colorid == 0) {
   mycolor = 'red';
@@ -101,12 +100,13 @@ if (colorid == 0) {
 } else if (colorid == 5) {
   mycolor = 'purple';
 };
+
 const player = new Player(Math.floor(canvas.width/2), Math.floor(canvas.height/2), 2, mycolor); // Create instance of local player: startx, starty, speed, color
 
-function animate() {
+function animate() { // Animation loop
   c.clearRect(0, 0, canvas.width, canvas.height);
-  player.update();
-  for (let i = 0; i < serverplayers.length; i++) {
+  player.update(); // Update player
+  for (let i = 0; i < serverplayers.length; i++) { // Update server players
     if (serverplayers[i].id != myid) {
       serverplayers[i].draw();
     };
@@ -136,7 +136,7 @@ sock.on('serverplayerupdate', (data) => { // Receive updates from other players,
     };
   };
 });
-sock.on('exitserverplayer', (theirid) => {
+sock.on('exitserverplayer', (theirid) => { // When a player disconnects
   if (theirid != myid) {
     serverplayers.splice(serverplayersid.indexOf(theirid), 1);
     serverplayersid.splice(serverplayersid.indexOf(theirid), 1);
