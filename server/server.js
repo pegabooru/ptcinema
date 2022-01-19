@@ -14,10 +14,12 @@ var users = [];
 io.on('connection', (sock) => { // For each socket
   users.push(sock.id);
   sock.emit('clientid', sock.id); // Give player their id
+  console.log('['+colors.green('Server')+'] '+'Player '+colors.green.bold(sock.id)+' connected');
 
   sock.once('disconnect', function() { // When player disconnects
     io.emit('exitserverplayer', sock.id);
-    users.pop(sock.id);
+    console.log('['+colors.green('Server')+'] '+'Player '+colors.red.bold(sock.id)+' disconnected');
+    users.splice(sock.id);
   });
 
   sock.on('clientmsg', (text) => { // Forward chat message to all players upon receiving from client
@@ -43,5 +45,5 @@ server.on('error', (err) => { // On error
 });
 server.listen(port, () => { // On start
   console.log(colors.blue.bold('Ponytown Cinema'));
-  console.log(colors.green.bold('Listening on port '+port));
+  console.log('['+colors.green('Server')+'] '+colors.green.bold('Listening on port '+port));
 });
