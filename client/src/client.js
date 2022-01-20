@@ -8,15 +8,14 @@ sock.on('clientid', (id) => { // Give player an id
   console.log('Your ID: '+myid);
 });
 
-function sendmessage(msg) { // Send a message to server and all players
+function msg(msg) { // Send a message to server and all players
   sock.emit('clientmsg', myid+': '+msg);
 };
 sock.on('servermsg', (text) => console.log(text)); // Receive player messages
 
-function playercount() { // Ask server for player count
-  sock.emit('askplayercount', '');
+function name(name) {
+  player.name = name;
 };
-sock.on('playercount', (data) => {console.log(data)});
 
 
 
@@ -28,7 +27,8 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 class Player { // Local player
-  constructor(x, y, s, c) {
+  constructor(myid, x, y, s, c) {
+    this.name = myid
     this.x = x;
     this.y = y;
     this.speed = s;
@@ -53,31 +53,35 @@ class Player { // Local player
     if (keys['A']) { // Left
       velX = -this.speed;
     };
-    sock.emit('localplayerupdate', [myid, this.x, this.y, this.color]); // Send updates to server
-    this.draw(velX, velY);
+    sock.emit('playerupdate', [myid, this.x, this.y, this.color, velX, velY, this.name]); // Send updates to server
+    this.draw();
   };
 
-  draw(vx, vy) { // Draw player
-    this.x += vx;
-    this.y += vy;
+  draw() { // Draw player
     c.beginPath();
     c.fillStyle = this.color;
-    c.fillRect(this.x, this.y, 64, 64);
+    c.arc(this.x, this.y, 16, 0, 2*Math.PI);
+    c.fill()
   };
 };
 
 class ServerPlayer { // Server player
-  constructor(x, y, c, id) {
+  constructor(x, y, c, id, name) {
     this.x = x;
     this.y = y;
     this.color = c;
     this.id = id;
+    this.name = name;
   };
 
   draw() { // Draw server player
     c.beginPath();
     c.fillStyle = this.color;
-    c.fillRect(this.x, this.y, 64, 64);
+    c.textAlign = 'center';
+    c.arc(this.x, this.y, 16, 0, 2*Math.PI);
+    c.fill()
+    c.fillStyle = 'black';
+    c.fillText(this.name, this.x, this.y-20);
   };
 };
 
@@ -101,16 +105,18 @@ if (colorid == 0) {
   mycolor = 'purple';
 };
 
-const player = new Player(Math.floor(canvas.width/2), Math.floor(canvas.height/2), 2, mycolor); // Create instance of local player: startx, starty, speed, color
+const player = new Player(myid, Math.floor(canvas.width/2), Math.floor(canvas.height/2), 2, mycolor); // Create instance of local player: startx, starty, speed, color
 
 function animate() { // Animation loop
   c.clearRect(0, 0, canvas.width, canvas.height);
+
   player.update(); // Update player
   for (let i = 0; i < serverplayers.length; i++) { // Update server players
     if (serverplayers[i].id != myid) {
       serverplayers[i].draw();
     };
   };
+
   requestAnimationFrame(animate);
 };
 
@@ -121,18 +127,21 @@ addEventListener('keyup', function (e) { // Keys up
   keys[e.key.toUpperCase()] = false;
 });
 
+sock.on('localplayerupdate', (data) => { // Receive updates from self only when server receives them
+  player.x += data[0];
+  player.y += data[1];
+});
 sock.on('serverplayerupdate', (data) => { // Receive updates from other players, add them to players list if they are not in it already and update id list
-  if (data[0] != myid) {
-    if (data[0] != 'anonymous') {
-      if (serverplayersid.indexOf(data[0]) == -1) {
-        serverplayersid.push(data[0]); // Append their id to the list of player ids
-        serverplayers.push(new ServerPlayer(data[1], data[2], data[3], data[0])); // New instance of server player, index corresponds with index of serverplayersid
-      }
-      else {
-        serverplayers[serverplayersid.indexOf(data[0])].x = data[1]; // Update their x coordinate
-        serverplayers[serverplayersid.indexOf(data[0])].y = data[2]; // Update their y coordinate
-        serverplayers[serverplayersid.indexOf(data[0])].color = data[3]; // Update their color
-      };
+  if (data[0] != myid && data[0] != 'anonymous') { // Make sure to not update self from other updates
+    if (serverplayersid.indexOf(data[0]) == -1) {
+      serverplayersid.push(data[0]); // Append their id to the list of player ids
+      serverplayers.push(new ServerPlayer(data[1], data[2], data[3], data[0], data[7])); // New instance of server player, index corresponds with index of serverplayersid
+    }
+    else {
+      serverplayers[serverplayersid.indexOf(data[0])].x = data[1]; // Update their x coordinate
+      serverplayers[serverplayersid.indexOf(data[0])].y = data[2]; // Update their y coordinate
+      serverplayers[serverplayersid.indexOf(data[0])].color = data[3]; // Update their color
+      serverplayers[serverplayersid.indexOf(data[0])].name = data[6]; // Update their name
     };
   };
 });
