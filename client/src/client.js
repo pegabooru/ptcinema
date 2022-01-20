@@ -21,10 +21,10 @@ function name(name) {
 
 // Main game
 const canvas = document.querySelector('canvas');
-const c = canvas.getContext('2d');
-
 canvas.width = innerWidth;
 canvas.height = innerHeight;
+canvas.background = 'img/bg.png';
+const c = canvas.getContext('2d');
 
 class Player { // Local player
   constructor(myid, x, y, s, c) {
@@ -36,6 +36,8 @@ class Player { // Local player
   };
 
   update() {
+    canvas.width = innerWidth; // Update canvas dimensions if changed
+    canvas.height = innerHeight;
     var velX = 0;
     var velY = 0;
 
@@ -109,7 +111,6 @@ const player = new Player(myid, Math.floor(canvas.width/2), Math.floor(canvas.he
 
 function animate() { // Animation loop
   c.clearRect(0, 0, canvas.width, canvas.height);
-
   player.update(); // Update player
   for (let i = 0; i < serverplayers.length; i++) { // Update server players
     if (serverplayers[i].id != myid) {
