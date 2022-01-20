@@ -1,3 +1,6 @@
 body {
+  background-image:url('https://i.imgur.com/ykyO2lp.png');
+  background-size: 600px 600px;
   margin: 0;
+  overflow: hidden;
 }
