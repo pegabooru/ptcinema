@@ -9,17 +9,14 @@ app.use(express.static(`${__dirname}/../client`));
 
 const server = http.createServer(app);
 const io = socketio(server);
-var users = [];
 
 io.on('connection', (sock) => { // For each socket
-  users.push(sock.id);
   sock.emit('clientid', sock.id); // Give player their id
   console.log('['+colors.green('Server')+'] '+'Player '+colors.green.bold(sock.id)+' connected');
 
   sock.once('disconnect', function() { // When player disconnects
     io.emit('exitserverplayer', sock.id);
     console.log('['+colors.green('Server')+'] '+'Player '+colors.red.bold(sock.id)+' disconnected');
-    users.splice(sock.id);
   });
 
   sock.on('clientmsg', (text) => { // Forward chat message to all players upon receiving from client
@@ -33,9 +30,10 @@ io.on('connection', (sock) => { // For each socket
 
 
 
-  sock.on('localplayerupdate', (data) => { // Receive and send local player updates to all players
-    io.emit('serverplayerupdate', data);
-    sock.emit('serverplayerdata', data);
+  sock.on('playerupdate', (data) => { // Receive and send local player updates to all players
+    sock.emit('localplayerupdate', [data[4], data[5]]); // Return the data back to local player
+    io.emit('serverplayerupdate', data); // Forward data to all other players
+    console.log(data);
   });
 });
 
