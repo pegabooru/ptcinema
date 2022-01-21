@@ -7,5 +7,4 @@
 4) Run npm install
 
 # Running server environment:
-1) Type cd (game directory)\server
-2) Run npm start
+1) Run the start file in the server directory
