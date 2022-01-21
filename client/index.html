@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Pony Town Cinema</title>
+    <title>Pony Cinema</title>
     <link rel="icon" href="img/favicon.png">
     <link rel="stylesheet" href="styles/main.css">
   </head>
 
   <body>
     <canvas id='canvas'></canvas>
+    <div id="notify">
+      <p id="notifyText" style="font-size:14px;font-family:verdana;color:rgb(255, 255, 255)"></p>
+    </div>
+    <div id="version">
+      <p id="versionText" style="font-size:14px;font-family:verdana;color:rgb(196, 196, 196)"></p>
+    </div>
+    <div id="console">
+      <input type="text" id="consoleText" onkeydown="send(this)" style="background-color:transparent;font-size:14px;font-family:verdana;color:rgb(255, 255, 255)" placeholder="...">
+    </div>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinycolor/1.4.1/tinycolor.min.js"></script>
     <script src="src/client.js"></script>
   </body>
 </html>
