@@ -1,7 +1,10 @@
+const port = 80; // Server port
+const version = 'Pony Cinema v0.1.0a'; // Version
+
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
-var colors = require('colors');
+const colors = require('colors');
 
 const app = express();
 
@@ -11,21 +14,21 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 io.on('connection', (sock) => { // For each socket
-  sock.emit('clientid', sock.id); // Give player their id
-  console.log('['+colors.green('Server')+'] '+'Player '+colors.green.bold(sock.id)+' connected');
+  date = new Date();
+  sock.emit('clientid', [sock.id, version]); // Give player their id
+  io.emit('enterserverplayer', sock.id);
+  console.log('['+colors.gray(date.getHours()+':'+date.getMinutes()+':'+date.getSeconds())+'] '+'Player '+colors.green.bold(sock.id)+' connected');
 
   sock.once('disconnect', function() { // When player disconnects
+    date = new Date();
     io.emit('exitserverplayer', sock.id);
-    console.log('['+colors.green('Server')+'] '+'Player '+colors.red.bold(sock.id)+' disconnected');
+    console.log('['+colors.gray(date.getHours()+':'+date.getMinutes()+':'+date.getSeconds())+'] '+colors.red.bold(sock.id)+' disconnected');
   });
 
   sock.on('clientmsg', (text) => { // Forward chat message to all players upon receiving from client
+    date = new Date();
     io.emit('servermsg', text);
-    console.log(text);
-  });
-
-  sock.on('askplayercount', () => { // Send player count
-    sock.emit('playercount', users.length);
+    console.log('['+colors.gray(date.getHours()+':'+date.getMinutes()+':'+date.getSeconds())+'] '+text);
   });
 
 
@@ -33,15 +36,18 @@ io.on('connection', (sock) => { // For each socket
   sock.on('playerupdate', (data) => { // Receive and send local player updates to all players
     sock.emit('localplayerupdate', [data[4], data[5]]); // Return the data back to local player
     io.emit('serverplayerupdate', data); // Forward data to all other players
-    console.log(data);
   });
 });
 
-const port = 80 // Server port
 server.on('error', (err) => { // On error
   console.error(err);
 });
 server.listen(port, () => { // On start
-  console.log(colors.blue.bold('Ponytown Cinema'));
-  console.log('['+colors.green('Server')+'] '+colors.green.bold('Listening on port '+port));
+  date = new Date();
+  console.log(colors.blue.bold('---Ponytown Cinema---'));
+  console.log('['+colors.gray(date.getHours()+':'+date.getMinutes()+':'+date.getSeconds())+'] '+colors.green.bold('Listening on port '+port));
 });
+
+setInterval(() => { // Send ticks to clients
+  io.emit('tick', [5000, 5000]);
+}, 10);
